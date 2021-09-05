@@ -1,0 +1,31 @@
+// Original file from https://gist.github.com/Meatplowz/376d7483d557c47f2ef8bdf3023fdf16
+global proc int
+performFileDropAction (string $theFile)
+{
+	string $msg = "Would you like to Import, Open or Reference the file?\nThis popup is part of the easyTexture plugin.";
+	string $response = `confirmDialog -message $msg -button "Apply texture" -button "Import" -button "Open" -button "Reference" -button "Cancel" -defaultButton "Cancel"`;
+	
+	switch($response)
+	{
+	    case "Cancel":
+	        return(1);
+	    case "Open":
+	        global string $gv_operationMode;
+    		string $save_gv_operationMode = $gv_operationMode;
+    		$gv_operationMode = "Open";
+    		int $result = performFileAction ($theFile, 1, "");
+    		$gv_operationMode = $save_gv_operationMode;
+    		return ($result);	
+    	case "Import":
+    	    file -import -namespace (basenameEx($theFile)) $theFile ;
+    	    return(1);
+    	case "Reference":
+    	    file -reference -namespace (basenameEx($theFile)) $theFile ;
+		    return(1);
+		case "Apply texture":
+		    string $scriptPath = `internalVar -userScriptDir`;
+		    python("exec(open('"+ $scriptPath +"/EasyTexturesV0.1.py').read())");
+		    python("ApplyTextureQuick(\""+ $theFile +"\")");
+		    return(0);		 
+	}
+}
