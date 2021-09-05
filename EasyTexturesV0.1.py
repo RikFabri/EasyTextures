@@ -1,5 +1,6 @@
 import maya.cmds
 import os
+import re
 
 # Returns whether or not texture is duplicate, and the shaderName on which it queried
 def FindDuplicateTexture(shaderName):
@@ -8,6 +9,7 @@ def FindDuplicateTexture(shaderName):
     
     # Format shaderName to the name it would have if it exists
     shaderName = shaderName.replace(".", "_")
+    shaderName = shaderName.replace("-", "_")
 
     # Check if shader already exists
     isShaderDuplicate = shaderName in existingShaders
