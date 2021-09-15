@@ -2,20 +2,23 @@ import maya.cmds
 import os
 import re
 
-# Returns whether or not texture is duplicate, and the shaderName on which it queried
-def FindDuplicateTexture(shaderName):
+# Formats the given string into a name that maya hypershade supports
+def FormatShaderName(name):
+    # Replaces dash dot and whitespace by underscore. Might need to be extended
+    name = re.sub("[-.\s]", "_", name)
+    return name
+
+# Returns whether or not texture is duplicate
+def DoesTextureExist(shaderName):
     # List all shaders
     existingShaders = cmds.ls(materials=True)
     
-    # Format shaderName to the name it would have if it exists
-    shaderName = shaderName.replace(".", "_")
-    shaderName = shaderName.replace("-", "_")
-
     # Check if shader already exists
     isShaderDuplicate = shaderName in existingShaders
-    return isShaderDuplicate, shaderName
+    return isShaderDuplicate
     
 # Creates a new standard surface texture w/ name=shaderName and texturePath as texture source
+# Returns the name of the shader
 def CreateNewTexture(shaderName, texturePath):
     # Create standardsurface and file nodes
     shaderNode = cmds.shadingNode("standardSurface", asShader=True, name=shaderName)
@@ -33,14 +36,12 @@ def CreateNewTexture(shaderName, texturePath):
     return shaderNode
     
 def ApplyTextureQuick(texturePath):
-    textureName = os.path.basename(texturePath) + ".EasyTextures"
+    shaderName = FormatShaderName("EasyTextures_" + os.path.basename(texturePath))
     selectedObjects = cmds.ls(sl=True)
-
-    isDuplicate, shaderName = FindDuplicateTexture(textureName)
     
     # If the texture doesn't exist already, create it
-    if(not isDuplicate):
-        shaderName = CreateNewTexture(shaderName, texturePath)
+    if(not DoesTextureExist(shaderName)):
+        CreateNewTexture(shaderName, texturePath)
     
     # Apply texture to objects
     cmds.sets(selectedObjects, e=True, forceElement=shaderName + "SG")
